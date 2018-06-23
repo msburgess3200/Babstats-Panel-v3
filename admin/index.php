@@ -1,5 +1,76 @@
 <?php
+/* Imports */
+//require('stats.bhd.ctsgaming.com/dev/admin/includes/functions.php');
+//require('stats.bhd.ctsgaming.com/dev/admin/includes/config.php');
+
+require '../includes/config.php';
+require 'includes/functions.php';
+require 'includes/account_functions.php';
+
+/* Variables */
+// $action = '';
+$username = '';
+$password = '';
+$remember = '';
+
+/* Execution */
 session_start();
+connectToDatabase();
+
+$action = $_GET['action'];
+
+if (isset($action)) {
+	if ($action == 'login') {
+		doLogin();
+	} elseif ($action == 'logout') {
+		doLogout();
+	}
+}
+
+function doLogin() {
+	$uid = 0;
+	$rows = null;
+	/* Grab user data */
+	$username = $_POST['username'];
+	$password = $_POST['password'];
+	$remember = $_POST['remember'];
+	/* Validate */
+	if (isset($username) && isset($password) && isset($remember)) {
+		/* Sanitize */
+		$username = escape_string($username);
+		$password = md5($password);
+		$password = escape_string($password);
+		$remember = escape_string($remember);
+		/* Exec */
+		$rows = query("SELECT `id` FROM `users` WHERE `username` = '".$username."' AND `password` = '".$password."';");
+		if (isset($rows) && num_rows($rows) == 1) {
+			$uid = fetch_array($rows)['id'];
+			/* Update user IP */
+			query("UPDATE `users` SET `ip` = '".getRealIpAddr()."' WHERE `id` = ".$uid.";");
+			if ($remember == 1) {
+				setCookie("loggedin",1,time()+604800);
+				setCookie("username",$username,time()+604800);
+				setCookie("userid",$uid,time()+604800);
+				setCookie("remember",$remember,time()+604800);
+			}
+		}
+	}
+	return $uid;
+}
+
+function doLogout() {
+	unSet($_COOKIE['loggedin']);
+	unSet($_COOKIE['username']);
+	unSet($_COOKIE['userid']);
+	unSet($_COOKIE['remember']);
+	setCookie("loggedin",0,time()-604800);
+	setCookie("username",0,time()-604800);
+	setCookie("userid",0,time()-604800);
+	setCookie("remember",0,time()-604800);
+	header("Location: index.php?err=logout");
+}
+
+
 if (isset($_GET['action']) && $_GET['action'] == "login"){
 	require("../includes/config.php");
 	if (isset($_POST['username']) && $_POST['username'] !== "" && $_POST['username'] !== NULL){
@@ -45,7 +116,6 @@ if (isset($_GET['action']) && $_GET['action'] == "login"){
 	}
 	$uid = $user['id']; // get userid from database
 	if (isset($num) && $num == 1 && $remember == 1){
-		require("../includes/functions.php");
 		if (isset($sql_mode) && $sql_mode == 1){
 			mysql_query("UPDATE `users` SET `ip` = '". getRealIpAddr() ."' WHERE `id` = ". $uid ."; ");
 		}elseif (isset($sql_mode) && $sql_mode == 2){
@@ -96,7 +166,6 @@ if (isset($sql_mode) && $sql_mode == 1 && isset($_COOKIE['loggedin']) && $_COOKI
 	$ans = mysqli_fetch_array($q);
 }
 if (isset($_COOKIE['loggedin']) && $_COOKIE['loggedin'] == 1){
-	require("../includes/functions.php");
 	$ip=getRealIpAddr();
 	if ($ans['ip'] !== $ip){
 		unSet($_COOKIE['loggedin']);

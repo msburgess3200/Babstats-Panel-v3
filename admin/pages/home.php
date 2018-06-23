@@ -1,170 +1,84 @@
 <?php
+/* Imports */
+// require('../includes/functions.php');
 
-	// Validation...
+require("../includes/config.php");
 
-	if (is_null($sql_mode) || empty($sql_mode)) {
-		die('No SQL mode set.');
-	}
+/* Validation */
+if (is_null($sql_mode) || empty($sql_mode)) {
+	die('\'$sql_mode\' is invalid!');
+} else if (is_null($bmt_pre) || empty($bmt_pre)) {
+	die('\'$bmt_pre\' is invalid!');
+}
 
-	// Vars...
+/* Vars */
+$totalPlayers = null;
+$latestRewards = null;
+$totalVisitors = null;
+$topMaps = null;
+$worldMap = null;
+$playerGraph = array(
+	'monday' => 0,
+	'tuesday' => 0,
+	'wednesday' => 0,
+	'thursday' => 0,
+	'friday' => 0,
+	'saturday' => 0,
+	'sunday' => 0
+);
 
-	$totalPlayers = 0;
-	$latestRewards = '';
-	$totalVisitors = 0;
-	$topMaps = '';
-	$worldMap = '';
-	$playerGraph = array(
-		'monday' => 0,
-		'tuesday' => 0,
-		'wednesday' => 0,
-		'thursday' => 0,
-		'friday' => 0,
-		'saturday' => 0,
-		'sunday' => 0
-	);
+/* Process */
+connectToDatabase();
+$totalPlayers = getTotalPlayers();
+$latestRewards = getLatestRewards();
+$totalVisitors = getTotalVisitors();
 
-	// Exec...
+/* Routines */
 
-	connectToDatabase();
+
+function getTotalVisitors() {
 	
-	$totalPlayers = getTotalVisitors();
-	$latestRewards = getLatestRewards();
-	
-	
-	// Other...
-	
-	/**
-	 * Get all latest rewards/awards from the `chronos_playerawards` table.
-	 * 
-SELECT
-	`chronos_playerawards`.`date`,
-	`chronos_awards`.`name`,
-	`chronos_awards`.`image`,
-	`chronos_awards`.`field`,
-	`chronos_awards`.`value`,
-	`chronos_awards`.`description`,
-	`chronos_awards`.`type`,
-	`chronos_players`.`name`
-FROM `chronos_playerawards`
-INNER JOIN `chronos_awards` ON `chronos_playerawards`.`award` = `chronos_awards`.`id`
-INNER JOIN `chronos_players` ON `chronos_playerawards`.`player` = `chronos_players`.`id`
-	 * 
-	 */
-	function getLatestRewards() {
-		$latestRewards = array();
-		$query = query('SELECT '.$bmt_pre.'`playerawards`.`date`, '.$bmt_pre.'`awards`.`name`, '.$bmt_pre.'`awards`.`image`, '.$bmt_pre.'`awards`.`field`, '.$bmt_pre.'`awards`.`value`, '.$bmt_pre.'`awards`.`description`, '.$bmt_pre.'`awards`.`type`, '.$bmt_pre.'`players`.`name` FROM '.$bmt_pre.'`playerawards` INNER JOIN '.$bmt_pre.'`awards` ON '.$bmt_pre.'`playerawards`.`award` = '.$bmt_pre.'`awards`.`id` INNER JOIN '.$bmt_pre.'`players` ON '.$bmt_pre.'`playerawards`.`player` = '.$bmt_pre.'`players`.`id`');
-		while($row = fetch_array($query)) {
-			$date = $row[$bmt_pre.'playerawards.date'];
-			$image = $row[$bmt_pre.'awards.image'];
-			$field = $row[$bmt_pre.'awards.field'];
-			$value = $row[$bmt_pre.'awards.value'];
-			$description = $row[$bmt_pre.'awards.description'];
-			$type = $row[$bmt_pre.'awards.type'];
-			$playerName = base64_decode($row[$bmt_pre.'players.name']);
-			array_push($names, $playerGraph = array(
-				'date' => $date,
-				'image' => $image,
-				'field' => $field,
-				'value' => $value,
-				'description' => $description,
-				'type' => $type,
-				'playerName' => $playerName
-			));
-		}
-		return $latestRewards;
+}
+
+/**
+ * Get all latest rewards/awards from the `chronos_playerawards` table.
+ */
+function getLatestRewards() {
+	$latestRewards = array();
+	$query = query('SELECT `'.$bmt_pre.'playerawards`.`date`, `'.$bmt_pre.'awards`.`name`, `'.$bmt_pre.'awards`.`image`, `'.$bmt_pre.'awards`.`field`, `'.$bmt_pre.'awards`.`value`, `'.$bmt_pre.'awards`.`description`, `'.$bmt_pre.'awards`.`type`, `'.$bmt_pre.'players`.`name` FROM `'.$bmt_pre.'playerawards` INNER JOIN `'.$bmt_pre.'awards` ON `'.$bmt_pre.'playerawards`.`award` = `'.$bmt_pre.'awards`.`id` INNER JOIN `'.$bmt_pre.'players` ON `'.$bmt_pre.'playerawards`.`player` = `'.$bmt_pre.'players`.`id`');
+	while($row = fetch_array($query, null)) {
+		$date = $row[$bmt_pre.'playerawards.date'];
+		$image = $row[$bmt_pre.'awards.image'];
+		$field = $row[$bmt_pre.'awards.field'];
+		$value = $row[$bmt_pre.'awards.value'];
+		$description = $row[$bmt_pre.'awards.description'];
+		$type = $row[$bmt_pre.'awards.type'];
+		$playerName = base64_decode($row[$bmt_pre.'players.name']);
+		array_push($latestRewards, $playerGraph = array(
+			'date' => $date,
+			'image' => $image,
+			'field' => $field,
+			'value' => $value,
+			'description' => $description,
+			'type' => $type,
+			'playerName' => $playerName
+		));
 	}
-	
-	/**
-	 * Get all player names in the server from the `chronos_players` table.
-	 */
-	function getTotalVisitors() {
-		$names = array();
-		$query = query('SELECT `name` FROM '.$bmt_pre.'`players`');
-		while($row = fetch_array($query)) {
-			$name = base64_decode($row['name']);
-			array_push($names, $name);
-		}
-		return $names;
+	return $latestRewards;
+}
+
+/**
+ * Get all player names in the server from the `chronos_players` table.
+ */
+function getTotalPlayers() {
+	$results = array();
+	$query = query('SELECT `name` FROM `'.$bmt_pre.'players`');
+	while($row = fetch_array($query, null)) {
+		$name = base64_decode($row['name']);
+		array_push($results, $name);
 	}
-	
-	// Utility...
-	
-	/**
-	 * Fetch query array with MySQL or MySQLi
-	 */
-	function fetch_array($query) {
-		$result = null;
-		switch($sql_mode) {
-			case 1:
-				$result = mysql_fetch_array($query);
-				break;
-			case 2:
-				$result = mysqli_fetch_array($query);
-				break;
-		}
-		return $result;
-	}
-	
-	/**
-	 * Number of rows with MySQL or MySQLi
-	 */
-	function num_rows($query) {
-		$num = 0;
-		switch($sql_mode) {
-			case 1:
-				$num = mysql_num_rows($query);
-				break;
-			case 2:
-				$num = mysqli_num_rows($query);
-				break;
-		}
-		return $num;
-	}
-	
-	/**
-	 * Query with MySQL or MySQLi
-	 */
-	function query($queryString) {
-		$results = null;
-		switch($sql_mode) {
-			case 1:
-				$results = mysql_query($queryString);
-				break;
-			case 2:
-				$results = mysqli_query($queryString);
-				break;
-		}
-		return $results;
-	}
-	
-	/**
-	 * Attempt to connect to database.
-	 */
-	function connectToDatabase() {
-		switch($sql_mode) {
-			case 1:
-				connectToMySQL();
-				break;
-			case 2:
-				connectToMySQLi();
-				break;
-		}
-	}
-	
-	/**
-	 * Attempt to connect to MySQL database.
-	 */
-	function connectToMySQL() {
-		mysql_connect($db_host,$db_username,$db_password)or die("An error occurred!\n<br />\n".mysql_error());
-		mysql_select_db($db_database)or die("An error occurred!\n<br />\n".mysql_error());
-	}
-	
-	/**
-	 * Attempt to connect to MySQLi database.
-	 */
-	function connectToMySQLi() {
-		mysqli_connect($db_host,$db_username,$db_password,$db_database)or die("An error occurred!\n<br />\n".mysqli_error());
-	}
+	return $results;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -197,6 +111,10 @@ INNER JOIN `chronos_players` ON `chronos_playerawards`.`player` = `chronos_playe
 </head>
 
 <body class="fix-header fix-sidebar">
+	<div id="php-debug"><?php 
+	echo json_encode($totalPlayers).'<br>';
+	echo 'SELECT `name` FROM `'.$bmt_pre.'players`<br>';
+	?></div>
     <!-- Preloader - style you can find in spinners.css -->
     <div class="preloader">
         <svg class="circular" viewBox="25 25 50 50">

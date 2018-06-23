@@ -1,0 +1,12 @@
+stats_import.php
+	- manually import player stats from BMT
+status_update.php
+	- usually for server uptime and number of players, etc.
+status_report.php
+	- usually to report final player stats at end of map
+index.php
+	- for wondering eyes redirect them to primary domain name && redirection for BMT Links
+	
+About this folder..
+This is where BMT (Babstats Multi-Tracker) sends player data and is processed and stored in the database.
+Uses old MySQL_ driver, and needs updating for new versions or it will not process correctly.
