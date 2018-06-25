@@ -32,13 +32,13 @@ require("functions.php");
 if($_POST)   foreach($_POST   as $Key=>$Value) $$Key = $Value;
 if($_GET)    foreach($_GET    as $Key=>$Value) $$Key = $Value;
 
-DBConnect();
-MakeTableNames();
-
 if(!isset($data) || !isset($serverid)) {
   echo "No data sent";
   exit;
 }
+
+// we moved the DBConnect because there's no point connecting if there's no data to process.
+connectToDatabase();
 
 $data =	base64_decode(str_replace(" ", "+", $data));
 

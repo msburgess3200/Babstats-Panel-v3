@@ -27,6 +27,7 @@ $tablepre2 = $bmt_m_pre;
  */
 function escape_string($str) {
 	$escStr = '';
+	global $sql_mode;
 	if (isset($sql_mode)){
 		switch($sql_mode) {
 			case 1:
@@ -36,56 +37,51 @@ function escape_string($str) {
 				$escStr = mysqli_escape_string($str);
 				break;
 		}
-		return $escStr;
 	}
+	return $escStr;
 }
 /**
  * Fetch query array with MySQL or MySQLi
  */
-function fetch_array($query, $options) {
+function fetch_array($query) {
 	$result = null;
+	global $sql_mode;
 	if (isset($sql_mode)){
-		switch($sql_mode) {
-			case 1:
-			if (isset($options) && $options !== NULL){
-				$result = mysql_fetch_array($query,$options) or die("An error occurred!<br />\n".mysql_error());
-			}else{
-				$result = mysql_fetch_array($query) or die("An error occurred!<br />\n".mysql_error());
-			}
-				break;
-			case 2:
-			if (isset($options) && $options !== NULL){
-				$result = mysqli_fetch_array($query,$options) or die("An error occurred!<br />\n".mysqli_error());
-			}else{
-				$result = mysqli_fetch_array($query) or die("An error occurred!<br />\n".mysqli_error());
-			}
-				break;
+	switch($sql_mode) {
+		case 1:
+			$result = mysql_fetch_array($query) or die(mysql_error());
+			break;
+		case 2:
+			$result = mysqli_fetch_array($query) or die(mysqli_error());
+			break;
 		}
-		return $result;
 	}
+	return $result;
 }
 /**
  * Fetch query array with MySQL or MySQLi
  */
 function fetch_assoc($query) {
 	$result = null;
+	global $sql_mode;
 	if (isset($sql_mode)){
 	switch($sql_mode) {
-			case 1:
-				$result = mysql_fetch_assoc($query);
-				break;
-			case 2:
-				$result = mysqli_fetch_assoc($query);
-				break;
+		case 1:
+			$result = mysql_fetch_assoc($query);
+			break;
+		case 2:
+			$result = mysqli_fetch_assoc($query);
+			break;
 		}
-		return $result;
 	}
+	return $result;
 }
 /**
  * Number of rows with MySQL or MySQLi
  */
 function num_rows($query) {
 	$num = 0;
+	global $sql_mode;
 	if (isset($sql_mode)){
 		switch($sql_mode) {
 			case 1:
@@ -95,14 +91,15 @@ function num_rows($query) {
 				$num = mysqli_num_rows($query);
 				break;
 		}
-		return $num;
 	}
+	return $num;
 }
 /**
  * Query with MySQL or MySQLi
  */
 function query($queryString) {
 	$results = null;
+	global $sql_mode;
 	if (isset($sql_mode)){
 		switch($sql_mode) {
 			case 1:
@@ -112,13 +109,14 @@ function query($queryString) {
 				$results = mysqli_query($queryString) or die("An error occurred!<br />\n".mysqli_error());
 				break;
 		}
-		return $results;
 	}
+	return $results;
 }
 /**
  * Attempt to connect to database.
  */
 function connectToDatabase() {
+	global $sql_mode;
 	if (isset($sql_mode)){
 		switch($sql_mode) {
 			case 1:
@@ -134,6 +132,7 @@ function connectToDatabase() {
  * Attempt to connect to MySQL database.
  */
 function connectToMySQL() {
+	global $db_host,$db_username,$db_password,$db_database;
 	mysql_connect($db_host,$db_username,$db_password)or die("An error occurred!\n<br />\n".mysql_error());
 	mysql_select_db($db_database)or die("An error occurred!\n<br />\n".mysql_error());
 }
@@ -141,6 +140,11 @@ function connectToMySQL() {
  * Attempt to connect to MySQLi database.
  */
 function connectToMySQLi() {
+	global $db_host,$db_username,$db_password,$db_database;
 	mysqli_connect($db_host,$db_username,$db_password,$db_database)or die("An error occurred!\n<br />\n".mysqli_error());
 } 
+
+
+
+
 ?>
